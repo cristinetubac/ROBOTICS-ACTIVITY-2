@@ -1,0 +1,211 @@
+# Dijkstra's Shortest Path Algorithm Code 
+class Graph(object):
+    # A graph is represented as a map.
+    # A graph contains 10X10 grid.
+    # Key: Name of the vertex.
+    # Value: Set of its silingan and their respective distance.
+
+    #tumoy = {"a" : [("b",2), ("c",3)], "b": [("c",5)]}
+
+    def __init__(self, tumoy={}):
+        """ initialize graph with given dictionay and coordinates.
+        """
+        self.tumoy = tumoy
+        self.vertices = self.get_vertices()
+
+    def get_vertices(self):
+        result = set()
+        for e in self.tumoy:
+            result.add(e)
+            for i in self.tumoy[e]:
+                result.add(i[0])
+
+        return result
+
+    def get_tumoy(self):
+        s = []
+        for e in self.tumoy:
+            for i in self.tumoy[e]:
+                s.append(str(e) + " -> " + str(i[0]) + ", cost = " + str(i[1]))
+
+        return '\n'.join(s)
+
+    def __str__(self):
+        return "Vetices: " + str(self.vertices) + "\nEdges:\n" + self.get_tumoy()
+
+    def add_vertex(self, vertex):
+        if vertex in self.vertices:
+            return
+        self.vertices.add(vertex)
+
+    def add_edge(self, src, dest, cost=1):
+        if src not in self.vertices:
+            return
+        if src not in self.tumoy:
+            self.tumoy[src] = []
+        if dest not in self.vertices:
+            self.vertices.add(dest)
+        self.tumoy[src].append((dest, cost))
+
+    def get_silingan(self, vertex):
+        if vertex not in self.vertices:
+            print("Error: Vertex does not exist!\n")
+            return []
+        if vertex not in self.tumoy:
+            return []
+        return self.tumoy[vertex]
+
+    def remove_vertex(self, vertex):
+        if vertex in self.vertices:
+            self.vertices.remove(vertex)
+        if vertex in self.tumoy:
+            self.edges.pop(vertex)
+        for e in self.tumoy:
+            for i in self.tumoy[e]:
+                if i[0] == vertex:
+                    self.tumoy[e].remove(i)
+
+    def remove_edge(self, src, dest):
+        if src not in self.tumoy:
+            return
+        for e in self.tumoy[src]:
+            if e[0] == dest:
+                self.tumoy[src].remove(e)
+
+    def dfs_traversal(self, src, visited=[]):
+        print(src)
+        for node in self.get_silingan(src):
+            if (node[0] not in visited):
+                visited.append(node[0])
+                self.dfs_traversal(node[0], visited)
+
+    # performs a dfs search and returns the path
+    # DFS means depth first search
+    def dfs(self, src, des):
+        stack = [(src, [src])]
+        visited = set()
+        visited_ordered = [src]
+        while stack:
+            (vertex, path) = stack.pop()
+            if vertex not in visited:
+                if vertex == des:
+                    return [path, visited_ordered]
+                visited.add(vertex)
+                visited_ordered.append(vertex)
+                for node in self.get_silingan(vertex):
+                    stack.append((node[0], path + [node[0]]))
+
+        print("No path has been found")
+        return None
+
+    # performs bfs search and returns the path
+    # BFS means breath first search
+    def bfs(self, src, des):
+        queue = [(src, [src])]
+        visited = set()
+        visited_ordered = [src]
+
+        while queue:
+            (vertex, path) = queue.pop(0)
+            if vertex not in visited:
+                if vertex == des:
+                    return [path, visited_ordered]
+                visited.add(vertex)
+                visited_ordered.append(vertex)
+                for (node, cost) in self.get_silingan(vertex):
+                    queue.append((node, path + [node]))
+
+        print("No path has been found")
+        return None
+
+    def search(self, src, dest, heuristic):
+        if src not in self.vertices or dest not in self.vertices:
+            return None
+
+        inf = float('inf')
+
+        # distance to source = 0; distance to rest nodes = infinity
+       # in this case the starting position will have a zero and the other nodes of the grid will be infinity.
+        dist = {vertex: inf for vertex in self.vertices}
+        dist[src] = 0
+        # initialize previous:
+        prev = {vertex: None for vertex in self.vertices}
+        # neighbours of each vertex:
+        silingan = {vertex: self.get_silingan(
+            vertex) for vertex in self.vertices}
+
+        # set of visited nodes
+        visited = set()
+        visited.add(src)
+        visited_ordered = [src]
+        q = [src]
+
+        while q:
+            next = min(q, key=heuristic(dist))
+            # remove element with shortest distance
+            q.remove(next)
+            # if we reached destination or smallest distance is infinite then break
+            if next == dest:
+                break
+
+            for v, cost in silingan[next]:
+                if v not in visited:
+                    visited.add(v)
+                    visited_ordered.append(v)
+                    q.append(v)
+                    new_dist = dist[next] + cost
+                    if new_dist < dist[v]:
+                        dist[v] = new_dist
+                        prev[v] = next
+
+            if len(q) == 0:
+                print("Cannot reach destination!")
+                return ""
+
+        # build the path
+        path = deque()
+
+        while prev[dest]:
+            path.appendleft(dest)
+            dest = prev[dest]
+
+        # add source to beginning of the path
+        path.appendleft(src)
+
+        #print("The shortest path is: " + " -> ".join(path) + "\ncost = "+ str(dist[next]))
+        return [path, visited_ordered]
+
+    def dijkstra(self, src, dest):
+        def heuristic(dist):
+            def h(v):
+                return dist[v]
+            return h
+        return self.search(src, dest, heuristic)
+
+    def a_star(self, src, dest, distances):
+        def heuristic(dist):
+            def h(v):
+                return dist[v] + distances[v]
+            return h
+        return self.search(src, dest, heuristic)
+
+    def greedy_BFS(self, src, dest, distances):
+        def heuristic(dist):
+            def h(v):
+                return distances[v]
+            return h
+        return self.search(src, dest, heuristic)
+
+
+#The graph would be like this that find the shortest route
+g = Graph({"a": [("f", 2), ("c", 3)], 
+           "b": [("g", 2), ("d", 1)], 
+           "c": [("a", 3), ("e", 1), ("d", 4), ("f", 2)],  
+           "d": [("b", 1), ("c", 4)],
+           "e": [("b", 2), ("c", 1), ("f", 3)],
+           "f": [("g", 5), ("f", 2)],
+           "g": [("f", 5), ("b", 2)]})
+
+print(g.get_silingan("a"))
+print(g.dfs("a", "b"))
+
