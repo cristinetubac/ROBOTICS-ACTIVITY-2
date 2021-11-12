@@ -71,12 +71,12 @@ class Graph(object):
             if e[0] == dest:
                 self.tumoy[src].remove(e)
 
-    def dfs_traversal(self, src, visited=[]):
+    def dfs_traversal(self, src):
         print(src)
         for node in self.get_silingan(src):
             if (node[0] not in visited):
                 visited.append(node[0])
-                self.dfs_traversal(node[0], visited)
+                self.dfs_traversal(node[0])
 
     # performs a dfs search and returns the path
     # DFS means depth first search
@@ -88,7 +88,7 @@ class Graph(object):
             (vertex, path) = stack.pop()
             if vertex not in visited:
                 if vertex == des:
-                    return [path, visited_ordered]
+                    return [path]
                 visited.add(vertex)
                 visited_ordered.append(vertex)
                 for node in self.get_silingan(vertex):
