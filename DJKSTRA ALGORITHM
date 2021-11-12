@@ -8,8 +8,7 @@ class Graph(object):
     #tumoy = {"a" : [("b",2), ("c",3)], "b": [("c",5)]}
 
     def __init__(self, tumoy={}):
-        """ initialize graph with given dictionay and coordinates.
-        """
+        """ initialize graph with given dictionay and coordinates."""
         self.tumoy = tumoy
         self.vertices = self.get_vertices()
 
@@ -98,39 +97,18 @@ class Graph(object):
         print("No path has been found")
         return None
 
-    # performs bfs search and returns the path
-    # BFS means breath first search
-    def bfs(self, src, des):
-        queue = [(src, [src])]
-        visited = set()
-        visited_ordered = [src]
-
-        while queue:
-            (vertex, path) = queue.pop(0)
-            if vertex not in visited:
-                if vertex == des:
-                    return [path, visited_ordered]
-                visited.add(vertex)
-                visited_ordered.append(vertex)
-                for (node, cost) in self.get_silingan(vertex):
-                    queue.append((node, path + [node]))
-
-        print("No path has been found")
-        return None
-
     def search(self, src, dest, heuristic):
         if src not in self.vertices or dest not in self.vertices:
             return None
 
         inf = float('inf')
 
-        # distance to source = 0; distance to rest nodes = infinity
+       # distance to source = 0; distance to rest nodes = infinity
        # in this case the starting position will have a zero and the other nodes of the grid will be infinity.
         dist = {vertex: inf for vertex in self.vertices}
         dist[src] = 0
         # initialize previous:
         prev = {vertex: None for vertex in self.vertices}
-        # neighbours of each vertex:
         silingan = {vertex: self.get_silingan(
             vertex) for vertex in self.vertices}
 
@@ -141,71 +119,21 @@ class Graph(object):
         q = [src]
 
         while q:
-            next = min(q, key=heuristic(dist))
+            next = min(q)
             # remove element with shortest distance
             q.remove(next)
             # if we reached destination or smallest distance is infinite then break
             if next == dest:
                 break
 
-            for v, cost in silingan[next]:
-                if v not in visited:
-                    visited.add(v)
-                    visited_ordered.append(v)
-                    q.append(v)
-                    new_dist = dist[next] + cost
-                    if new_dist < dist[v]:
-                        dist[v] = new_dist
-                        prev[v] = next
-
-            if len(q) == 0:
-                print("Cannot reach destination!")
-                return ""
-
-        # build the path
-        path = deque()
-
-        while prev[dest]:
-            path.appendleft(dest)
-            dest = prev[dest]
-
-        # add source to beginning of the path
-        path.appendleft(src)
-
-        #print("The shortest path is: " + " -> ".join(path) + "\ncost = "+ str(dist[next]))
-        return [path, visited_ordered]
-
-    def dijkstra(self, src, dest):
-        def heuristic(dist):
-            def h(v):
-                return dist[v]
-            return h
-        return self.search(src, dest, heuristic)
-
-    def a_star(self, src, dest, distances):
-        def heuristic(dist):
-            def h(v):
-                return dist[v] + distances[v]
-            return h
-        return self.search(src, dest, heuristic)
-
-    def greedy_BFS(self, src, dest, distances):
-        def heuristic(dist):
-            def h(v):
-                return distances[v]
-            return h
-        return self.search(src, dest, heuristic)
-
-
 #The graph would be like this that find the shortest route
-g = Graph({"a": [("f", 2), ("c", 4)], 
+g = Graph({"a": [("c", 4), ("f", 2)],
+           "f": [("g", 5), ("e", 3), ("b", 6), ("c", 2)],
+           "c": [("a", 4), ("d", 4), ("f", 2), ("e", 1)],           
+           "e": [("c", 1), ("f", 3), ("b", 2)],           
            "b": [("g", 2), ("d", 1), ("e", 2), ("f", 6)], 
-           "c": [("a", 4), ("e", 1), ("d", 4), ("f", 2)],  
            "d": [("b", 1), ("c", 4)],
-           "e": [("b", 2), ("c", 1), ("f", 3)],
-           "f": [("g", 5), ("a", 2), ("c", 2), ("e", 3), ("b", 6)],
            "g": [("f", 5), ("b", 2)]})
 
-print(g.get_silingan("a"))
-print(g.dfs("a","b"))
 
+print("The path is:", g.dfs("a","b"))
